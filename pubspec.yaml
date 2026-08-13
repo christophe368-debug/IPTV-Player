@@ -63,6 +63,9 @@ dependencies:
   # --- M3U-Playlist-Datei-Auswahl ---
   file_picker: ^8.3.7
 
+  # --- Eindeutige IDs fuer Profile/Playlist-Eintraege ---
+  uuid: ^4.5.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
