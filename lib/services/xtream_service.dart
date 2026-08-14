@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/category.dart';
 import '../models/channel.dart';
+import '../models/episode.dart';
 import '../models/epg_program.dart';
+import '../models/media_details.dart';
 
 /// Client fuer die "Xtream Codes API", das von den meisten kommerziellen
 /// IPTV-Anbietern verwendete Format. Kommuniziert mit `player_api.php`
@@ -108,6 +110,57 @@ class XtreamService {
         .get(_apiUri('get_series_info', {'series_id': seriesId}))
         .timeout(const Duration(seconds: 15));
     return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  /// Detailinfos (Beschreibung, Besetzung, ...) zu einem Film.
+  Future<MediaDetails> getVodInfo(String vodId) async {
+    final res = await http
+        .get(_apiUri('get_vod_info', {'vod_id': vodId}))
+        .timeout(const Duration(seconds: 15));
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    final info = data['info'] as Map<String, dynamic>? ?? {};
+    return _mediaDetailsFromInfo(info);
+  }
+
+  /// Detailinfos + nach Staffel gruppierte Episoden einer Serie.
+  Future<({MediaDetails details, Map<int, List<Episode>> seasons})> getSeriesDetails(
+    String seriesId,
+  ) async {
+    final data = await getSeriesInfo(seriesId);
+    final info = data['info'] as Map<String, dynamic>? ?? {};
+    final details = _mediaDetailsFromInfo(info);
+
+    final episodesRaw = data['episodes'] as Map<String, dynamic>? ?? {};
+    final seasons = <int, List<Episode>>{};
+    episodesRaw.forEach((seasonKey, list) {
+      final seasonNum = int.tryParse(seasonKey) ?? 0;
+      final episodes = (list as List<dynamic>).map((e) {
+        final map = e as Map<String, dynamic>;
+        final episodeId = map['id'].toString();
+        return Episode(
+          id: episodeId,
+          title: map['title']?.toString() ?? 'Episode',
+          season: seasonNum,
+          episodeNumber: int.tryParse(map['episode_num']?.toString() ?? '') ?? 0,
+          streamUrl: buildStreamUrl(StreamType.series, episodeId, map['container_extension']),
+        );
+      }).toList()
+        ..sort((a, b) => a.episodeNumber.compareTo(b.episodeNumber));
+      seasons[seasonNum] = episodes;
+    });
+
+    return (details: details, seasons: seasons);
+  }
+
+  MediaDetails _mediaDetailsFromInfo(Map<String, dynamic> info) {
+    return MediaDetails(
+      plot: info['plot']?.toString(),
+      cast: info['cast']?.toString(),
+      director: info['director']?.toString(),
+      releaseDate: (info['releasedate'] ?? info['release_date'])?.toString(),
+      rating: info['rating']?.toString(),
+      genre: info['genre']?.toString(),
+    );
   }
 
   /// Holt den EPG (Programmfuehrer) fuer einen Sender der naechsten Stunden.

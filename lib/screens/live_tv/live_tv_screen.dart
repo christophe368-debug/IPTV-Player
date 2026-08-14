@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/channel.dart';
 import '../../models/profile.dart';
 import '../../providers/content_provider.dart';
 import 'channel_list_screen.dart';
@@ -12,13 +13,14 @@ class LiveTvScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final categoriesAsync = ref.watch(liveCategoriesProvider(profile));
+    final query = (profile: profile, type: StreamType.live);
+    final categoriesAsync = ref.watch(categoriesProvider(query));
 
     return categoriesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => _ErrorView(
         message: err.toString().replaceFirst('Exception: ', ''),
-        onRetry: () => ref.invalidate(liveCategoriesProvider(profile)),
+        onRetry: () => ref.invalidate(categoriesProvider(query)),
       ),
       data: (categories) {
         if (categories.isEmpty) {

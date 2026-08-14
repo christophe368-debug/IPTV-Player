@@ -17,8 +17,8 @@ class ChannelListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final query = (profile: profile, categoryId: category.id);
-    final channelsAsync = ref.watch(liveChannelsProvider(query));
+    final query = (profile: profile, type: StreamType.live, categoryId: category.id);
+    final channelsAsync = ref.watch(channelsProvider(query));
 
     return Scaffold(
       appBar: AppBar(title: Text(category.name)),

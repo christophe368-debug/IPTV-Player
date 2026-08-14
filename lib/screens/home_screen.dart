@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/profile.dart';
 import '../providers/profile_provider.dart';
 import 'live_tv/live_tv_screen.dart';
+import 'series/series_screen.dart';
+import 'vod/vod_screen.dart';
 
 /// Hauptbildschirm nach dem Login: Bottom-Navigation zwischen Live-TV, VOD,
-/// Serien, Favoriten und Suche. VOD/Serien/Favoriten/Suche werden in
-/// spaeteren Schritten mit echtem Inhalt gefuellt.
+/// Serien, Favoriten und Suche. VOD/Serien stehen nur bei Xtream-Profilen
+/// zur Verfuegung, da M3U-Playlists keine getrennte Struktur dafuer liefern.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -20,15 +23,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final profile = ref.watch(activeProfileProvider);
     if (profile == null) {
-      // Sollte praktisch nicht vorkommen (Profil wird vor Navigation gesetzt),
-      // aber sicherheitshalber zurueck zur Profilauswahl statt abzustuerzen.
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final isXtream = profile.type == ProfileType.xtream;
+
     final tabs = [
       LiveTvScreen(profile: profile),
-      const _ComingSoon(label: 'Filme (VOD)'),
-      const _ComingSoon(label: 'Serien'),
+      isXtream ? VodScreen(profile: profile) : const _NotAvailableForM3u(feature: 'Filme'),
+      isXtream ? SeriesScreen(profile: profile) : const _NotAvailableForM3u(feature: 'Serien'),
       const _ComingSoon(label: 'Favoriten'),
       const _ComingSoon(label: 'Suche'),
     ];
@@ -79,6 +82,32 @@ class _ComingSoon extends StatelessWidget {
           const SizedBox(height: 12),
           Text('$label folgt in einem der naechsten Schritte'),
         ],
+      ),
+    );
+  }
+}
+
+class _NotAvailableForM3u extends StatelessWidget {
+  final String feature;
+  const _NotAvailableForM3u({required this.feature});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.info_outline, size: 48, color: Colors.grey),
+            const SizedBox(height: 12),
+            Text(
+              '$feature sind fuer M3U-Playlists nicht verfuegbar.\n'
+              'M3U-Listen liefern keine getrennte $feature-Struktur wie Xtream Codes.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
