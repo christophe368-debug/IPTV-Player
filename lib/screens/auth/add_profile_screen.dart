@@ -302,17 +302,19 @@ class _M3uFileFormState extends ConsumerState<_M3uFileForm> with _SubmitStateMix
   }
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
+    final file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['m3u', 'm3u8', 'txt'],
-      withData: true,
     );
-    if (result == null || result.files.isEmpty) return;
+    if (file == null) return;
+    // In file_picker 12 werden die Bytes nicht mehr synchron mitgeliefert,
+    // sondern muessen separat (asynchron) vom PlatformFile gelesen werden.
+    final bytes = await file.readAsBytes();
     setState(() {
-      _pickedFileName = result.files.first.name;
-      _pickedBytes = result.files.first.bytes;
+      _pickedFileName = file.name;
+      _pickedBytes = bytes;
       if (_nameCtrl.text.trim().isEmpty) {
-        _nameCtrl.text = result.files.first.name.replaceAll(RegExp(r'\.(m3u8?|txt)$'), '');
+        _nameCtrl.text = file.name.replaceAll(RegExp(r'\.(m3u8?|txt)$'), '');
       }
     });
   }

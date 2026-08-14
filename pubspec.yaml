@@ -52,7 +52,7 @@ dependencies:
   path_provider: ^2.1.5
 
   # --- Sichere Speicherung von Zugangsdaten ---
-  flutter_secure_storage: ^9.2.4
+  flutter_secure_storage: ^11.0.0
 
   # --- EPG-Parsing (XMLTV) ---
   xml: ^6.5.0
@@ -61,14 +61,24 @@ dependencies:
   cached_network_image: ^3.4.1
 
   # --- M3U-Playlist-Datei-Auswahl ---
-  file_picker: ^8.3.7
+  file_picker: ^12.0.0
 
   # --- Eindeutige IDs fuer Profile/Playlist-Eintraege ---
   uuid: ^4.5.1
 
+  # --- Transitive Abhaengigkeit von media_kit_video ---
+  wakelock_plus: 1.7.0
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+# wakelock_plus 1.7.0 hat einen Upstream-Bug, der den Android-Build
+# verhindert. Lokal gepatchte Kopie, siehe third_party/README.md.
+dependency_overrides:
+  wakelock_plus:
+    path: third_party/wakelock_plus
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

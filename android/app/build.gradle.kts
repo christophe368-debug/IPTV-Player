@@ -6,7 +6,9 @@ plugins {
 
 android {
     namespace = "com.christophermartin.iptvplayer.iptv_player"
-    compileSdk = flutter.compileSdkVersion
+    // Einige Plugins verlangen eine hoehere API zum Kompilieren als der
+    // Flutter-Standard (flutter_secure_storage 11.x braucht mindestens 37).
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
