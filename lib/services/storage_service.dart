@@ -17,8 +17,18 @@ class StorageService {
   late Box _settingsBox;
 
   /// Muss einmal beim App-Start aufgerufen werden (siehe main.dart).
-  Future<void> init() async {
-    await Hive.initFlutter();
+  ///
+  /// [testDirectoryPath] wird nur in Tests gebraucht: Hive.initFlutter()
+  /// fragt intern per Plattform-Kanal (path_provider) nach dem
+  /// App-Verzeichnis, was in `flutter test` nicht beantwortet wird und die
+  /// Tests unbegrenzt haengen laesst. Mit einem direkt uebergebenen
+  /// Verzeichnis (z.B. ein Temp-Ordner) wird dieser Kanal umgangen.
+  Future<void> init({String? testDirectoryPath}) async {
+    if (testDirectoryPath != null) {
+      Hive.init(testDirectoryPath);
+    } else {
+      await Hive.initFlutter();
+    }
     _profilesBox = await Hive.openBox(_profilesBoxName);
     _favoritesBox = await Hive.openBox(_favoritesBoxName);
     _settingsBox = await Hive.openBox(_settingsBoxName);
