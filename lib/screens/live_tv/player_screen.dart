@@ -1,11 +1,16 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
-/// Vollbild-Wiedergabe eines Streams (Live-TV, VOD oder Serien-Episode).
-/// Nutzt media_kit (libmpv), da es im Gegensatz zum einfachen Flutter
-/// video_player auch rohe MPEG-TS-Streams zuverlaessig abspielt, was bei
-/// IPTV-Anbietern sehr haeufig vorkommt.
+const _pipChannel = MethodChannel('iptv_player/pip');
+
+/// Vollbild-Wiedergabe eines Streams (Live-TV, VOD, Serien-Episode oder
+/// Timeshift/Catchup-Ausschnitt). Nutzt media_kit (libmpv), da es im
+/// Gegensatz zum einfachen Flutter video_player auch rohe MPEG-TS-Streams
+/// zuverlaessig abspielt, was bei IPTV-Anbietern sehr haeufig vorkommt.
 class PlayerScreen extends StatefulWidget {
   final String title;
   final String streamUrl;
@@ -26,19 +31,41 @@ class _PlayerScreenState extends State<PlayerScreen> {
     _player = Player();
     _controller = VideoController(_player);
 
-    // Bildschirm waehrend der Wiedergabe im Querformat und ohne
-    // Standby-Sperre halten fuehren wir in einem spaeteren Schritt ein.
     _player.stream.error.listen((error) {
       if (mounted) setState(() => _errorMessage = error);
     });
 
     _player.open(Media(widget.streamUrl));
+
+    // Waehrend der Wiedergabe: Bildschirm nicht abschalten und im
+    // Querformat bleiben (typisch fuer Video-Vollbild).
+    WakelockPlus.enable();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
   }
 
   @override
   void dispose() {
+    WakelockPlus.disable();
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     _player.dispose();
     super.dispose();
+  }
+
+  Future<void> _enterPip() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final ok = await _pipChannel.invokeMethod<bool>('enterPip');
+      if (ok != true && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bild-in-Bild wird auf diesem Geraet nicht unterstuetzt.')),
+        );
+      }
+    } on PlatformException {
+      // Ignorieren - PiP ist ein Komfort-Feature, kein kritischer Pfad.
+    }
   }
 
   @override
@@ -49,6 +76,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         title: Text(widget.title),
+        actions: [
+          if (Platform.isAndroid)
+            IconButton(
+              icon: const Icon(Icons.picture_in_picture_alt),
+              tooltip: 'Bild-in-Bild',
+              onPressed: _enterPip,
+            ),
+        ],
       ),
       body: Center(
         child: _errorMessage != null

@@ -13,6 +13,8 @@ class Channel {
   final String streamUrl;
   final StreamType streamType;
   final String? epgChannelId;
+  /// Wie viele Tage Timeshift/Catchup der Sender unterstuetzt (0 = keine).
+  final int catchupDays;
 
   Channel({
     required this.id,
@@ -22,7 +24,10 @@ class Channel {
     required this.streamType,
     this.logoUrl,
     this.epgChannelId,
+    this.catchupDays = 0,
   });
+
+  bool get hasCatchup => catchupDays > 0;
 
   /// Fuer die Speicherung als Favorit (Hive kann nur einfache Typen wie
   /// Maps direkt speichern, keine eigenen Klassen).
@@ -35,6 +40,7 @@ class Channel {
       'streamType': streamType.name,
       'logoUrl': logoUrl,
       'epgChannelId': epgChannelId,
+      'catchupDays': catchupDays,
     };
   }
 
@@ -47,6 +53,7 @@ class Channel {
       streamType: StreamType.values.firstWhere((t) => t.name == map['streamType']),
       logoUrl: map['logoUrl'] as String?,
       epgChannelId: map['epgChannelId'] as String?,
+      catchupDays: (map['catchupDays'] as num?)?.toInt() ?? 0,
     );
   }
 

@@ -81,6 +81,12 @@ class XtreamService {
 
     return list.map((e) {
       final streamId = (e['stream_id'] ?? e['series_id']).toString();
+      // tv_archive/tv_archive_duration kommen nur bei Live-Sendern vor und
+      // zeigen an, ob und wie viele Tage Timeshift/Catchup verfuegbar sind.
+      final archiveFlag = e['tv_archive'];
+      final hasArchive = archiveFlag == 1 || archiveFlag == '1' || archiveFlag == true;
+      final archiveDays = int.tryParse(e['tv_archive_duration']?.toString() ?? '') ?? 0;
+
       return Channel(
         id: streamId,
         name: e['name'] as String? ?? '?',
@@ -89,8 +95,21 @@ class XtreamService {
         streamUrl: type == StreamType.series ? '' : buildStreamUrl(type, streamId, e['container_extension']),
         streamType: type,
         epgChannelId: e['epg_channel_id'] as String?,
+        catchupDays: hasArchive ? (archiveDays > 0 ? archiveDays : 1) : 0,
       );
     }).toList();
+  }
+
+  /// Baut die Wiedergabe-URL fuer einen Timeshift/Catchup-Ausschnitt.
+  /// [start] ist der Beginn der gewuenschten Sendung, [duration] ihre Laenge.
+  String buildTimeshiftUrl(String streamId, DateTime start, Duration duration) {
+    final minutes = duration.inMinutes.clamp(1, 24 * 60);
+    final formatted = '${start.year.toString().padLeft(4, '0')}-'
+        '${start.month.toString().padLeft(2, '0')}-'
+        '${start.day.toString().padLeft(2, '0')}:'
+        '${start.hour.toString().padLeft(2, '0')}-'
+        '${start.minute.toString().padLeft(2, '0')}';
+    return '$_base/timeshift/$username/$password/$minutes/$formatted/$streamId.ts';
   }
 
   /// Baut die abspielbare Stream-URL fuer einen gegebenen Kanal/Film.

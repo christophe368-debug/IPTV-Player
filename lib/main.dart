@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'providers/profile_provider.dart';
+import 'providers/settings_provider.dart';
 import 'screens/auth/profile_list_screen.dart';
 import 'services/storage_service.dart';
 
@@ -24,15 +25,16 @@ Future<void> main() async {
   );
 }
 
-class IptvPlayerApp extends StatelessWidget {
+class IptvPlayerApp extends ConsumerWidget {
   const IptvPlayerApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
     return MaterialApp(
       title: 'IPTV Player',
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.dark,
+      themeMode: themeMode,
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         useMaterial3: true,

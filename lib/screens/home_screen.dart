@@ -6,6 +6,7 @@ import 'favorites/favorites_screen.dart';
 import 'live_tv/live_tv_screen.dart';
 import 'search/search_screen.dart';
 import 'series/series_screen.dart';
+import 'settings/settings_screen.dart';
 import 'vod/vod_screen.dart';
 
 /// Hauptbildschirm nach dem Login: Bottom-Navigation zwischen Live-TV, VOD,
@@ -44,6 +45,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(
         title: Text('${titles[_tabIndex]} - ${profile.name}'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Einstellungen',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.switch_account),
             tooltip: 'Profil wechseln',

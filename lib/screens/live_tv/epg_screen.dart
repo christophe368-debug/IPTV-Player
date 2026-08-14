@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/channel.dart';
+import '../../models/epg_program.dart';
 import '../../models/profile.dart';
 import '../../providers/content_provider.dart';
+import 'player_screen.dart';
 
 /// Programmfuehrer (EPG) fuer einen einzelnen Sender: zeigt "Jetzt" und
 /// die naechsten Sendungen mit Uhrzeit und Beschreibung.
@@ -37,6 +39,11 @@ class EpgScreen extends ConsumerWidget {
             itemBuilder: (context, i) {
               final program = sorted[i];
               final isNow = program.isCurrentlyRunning;
+              final isPast = program.end.isBefore(DateTime.now());
+              final canCatchup = isPast &&
+                  channel.hasCatchup &&
+                  program.start.isAfter(DateTime.now().subtract(Duration(days: channel.catchupDays)));
+
               return ListTile(
                 tileColor: isNow ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.4) : null,
                 leading: Column(
@@ -53,7 +60,15 @@ class EpgScreen extends ConsumerWidget {
                 subtitle: program.description != null && program.description!.isNotEmpty
                     ? Text(program.description!, maxLines: 2, overflow: TextOverflow.ellipsis)
                     : null,
-                trailing: isNow ? const Chip(label: Text('Jetzt')) : null,
+                trailing: isNow
+                    ? const Chip(label: Text('Jetzt'))
+                    : canCatchup
+                        ? IconButton(
+                            icon: const Icon(Icons.play_circle_outline),
+                            tooltip: 'Sendung ansehen (Timeshift)',
+                            onPressed: () => _playCatchup(context, ref, program),
+                          )
+                        : null,
               );
             },
           );
@@ -64,4 +79,14 @@ class EpgScreen extends ConsumerWidget {
 
   String _formatTime(DateTime dt) =>
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+
+  void _playCatchup(BuildContext context, WidgetRef ref, EpgProgram program) {
+    final xtream = ref.read(xtreamServiceProvider(profile));
+    final url = xtream.buildTimeshiftUrl(channel.id, program.start, program.end.difference(program.start));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PlayerScreen(title: '${channel.name} - ${program.title}', streamUrl: url),
+      ),
+    );
+  }
 }

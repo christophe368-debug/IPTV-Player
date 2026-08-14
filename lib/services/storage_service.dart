@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/channel.dart';
 import '../models/profile.dart';
@@ -69,5 +71,52 @@ class StorageService {
       current.add(channel);
     }
     await _favoritesBox.put(profileId, current.map((c) => c.toMap()).toList());
+  }
+
+  // --- Darstellung ---
+
+  /// 'system', 'light' oder 'dark'.
+  String getThemeMode() => (_settingsBox.get('themeMode') as String?) ?? 'system';
+
+  Future<void> setThemeMode(String mode) async {
+    await _settingsBox.put('themeMode', mode);
+  }
+
+  // --- Eltern-PIN (Kindersicherung) ---
+
+  bool get hasParentalPin => _settingsBox.get('parentalPinHash') != null;
+
+  Future<void> setParentalPin(String pin) async {
+    await _settingsBox.put('parentalPinHash', _hashPin(pin));
+  }
+
+  Future<void> clearParentalPin() async {
+    await _settingsBox.delete('parentalPinHash');
+  }
+
+  bool checkParentalPin(String pin) {
+    final stored = _settingsBox.get('parentalPinHash') as String?;
+    if (stored == null) return false;
+    return stored == _hashPin(pin);
+  }
+
+  String _hashPin(String pin) => sha256.convert(utf8.encode(pin)).toString();
+
+  // --- Gesperrte Kategorien pro Profil (Kindersicherung) ---
+
+  Set<String> getLockedCategoryKeys(String profileId) {
+    final raw = _settingsBox.get('lockedCategories_$profileId') as List<dynamic>?;
+    if (raw == null) return {};
+    return raw.map((e) => e.toString()).toSet();
+  }
+
+  Future<void> toggleCategoryLock(String profileId, String categoryKey) async {
+    final current = getLockedCategoryKeys(profileId);
+    if (current.contains(categoryKey)) {
+      current.remove(categoryKey);
+    } else {
+      current.add(categoryKey);
+    }
+    await _settingsBox.put('lockedCategories_$profileId', current.toList());
   }
 }
