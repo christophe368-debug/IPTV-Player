@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/category.dart';
 import '../models/channel.dart';
+import '../models/epg_program.dart';
 import '../models/profile.dart';
 import '../repositories/content_repository.dart';
 import '../services/xtream_service.dart';
@@ -31,4 +32,10 @@ final liveChannelsProvider = FutureProvider.family<List<Channel>, ChannelsQuery>
   return ref
       .watch(contentRepositoryProvider(query.profile))
       .getChannels(StreamType.live, categoryId: query.categoryId);
+});
+
+typedef EpgQuery = ({Profile profile, Channel channel});
+
+final epgProvider = FutureProvider.family<List<EpgProgram>, EpgQuery>((ref, query) {
+  return ref.watch(contentRepositoryProvider(query.profile)).getEpg(query.channel);
 });

@@ -5,7 +5,11 @@ import '../models/channel.dart';
 class M3uParseResult {
   final List<Channel> channels;
   final List<Category> categories;
-  M3uParseResult(this.channels, this.categories);
+  /// EPG-URL (XMLTV), falls die Playlist eine per `url-tvg`/`x-tvg-url`
+  /// im #EXTM3U-Header angibt. Kann null sein, wenn keine EPG-Quelle
+  /// bekannt ist.
+  final String? epgUrl;
+  M3uParseResult(this.channels, this.categories, {this.epgUrl});
 }
 
 /// Parst eine M3U/M3U8-Playlist (Standardformat, z.B. von IPTV-Anbietern
@@ -33,19 +37,22 @@ class M3uParserService {
     String? pendingLogo;
     String? pendingGroup;
     String? pendingTvgId;
+    String? epgUrl;
     var index = 0;
 
     for (final rawLine in lines) {
       final line = rawLine.trim();
       if (line.isEmpty) continue;
 
-      if (line.startsWith('#EXTINF')) {
+      if (line.startsWith('#EXTM3U')) {
+        epgUrl = _extractAttr(line, 'url-tvg') ?? _extractAttr(line, 'x-tvg-url');
+      } else if (line.startsWith('#EXTINF')) {
         pendingName = _extractTitle(line);
         pendingLogo = _extractAttr(line, 'tvg-logo');
         pendingGroup = _extractAttr(line, 'group-title') ?? 'Ohne Kategorie';
         pendingTvgId = _extractAttr(line, 'tvg-id');
       } else if (line.startsWith('#')) {
-        // Andere Meta-Zeilen (#EXTM3U, #EXTGRP, ...) ignorieren wir vorerst.
+        // Andere Meta-Zeilen (#EXTGRP, ...) ignorieren wir vorerst.
         continue;
       } else {
         // Das ist eine URL-Zeile - gehoert zum zuletzt gesehenen #EXTINF.
@@ -72,7 +79,7 @@ class M3uParserService {
       }
     }
 
-    return M3uParseResult(channels, categoriesByName.values.toList());
+    return M3uParseResult(channels, categoriesByName.values.toList(), epgUrl: epgUrl);
   }
 
   String _extractTitle(String extinfLine) {

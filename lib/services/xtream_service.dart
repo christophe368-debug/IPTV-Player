@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/category.dart';
 import '../models/channel.dart';
+import '../models/epg_program.dart';
 
 /// Client fuer die "Xtream Codes API", das von den meisten kommerziellen
 /// IPTV-Anbietern verwendete Format. Kommuniziert mit `player_api.php`
@@ -109,12 +110,46 @@ class XtreamService {
     return jsonDecode(res.body) as Map<String, dynamic>;
   }
 
-  /// Holt den EPG (Programmfuehrer) fuer einen Sender der naechsten Tage.
+  /// Holt den EPG (Programmfuehrer) fuer einen Sender der naechsten Stunden.
   Future<List<dynamic>> getShortEpg(String streamId) async {
     final res = await http
         .get(_apiUri('get_short_epg', {'stream_id': streamId}))
         .timeout(const Duration(seconds: 15));
     final data = jsonDecode(res.body) as Map<String, dynamic>;
     return data['epg_listings'] as List<dynamic>? ?? [];
+  }
+
+  /// Wie [getShortEpg], aber bereits in nutzbare [EpgProgram]-Objekte
+  /// umgewandelt (Titel/Beschreibung sind bei Xtream ueblicherweise
+  /// Base64-kodiert).
+  Future<List<EpgProgram>> getEpgPrograms(String streamId) async {
+    final listings = await getShortEpg(streamId);
+    return listings.map((raw) {
+      final entry = raw as Map<String, dynamic>;
+      final startTs = int.tryParse(entry['start_timestamp']?.toString() ?? '');
+      final stopTs = int.tryParse(entry['stop_timestamp']?.toString() ?? '');
+      return EpgProgram(
+        title: _decodeMaybeBase64(entry['title']) ?? 'Unbekannt',
+        description: _decodeMaybeBase64(entry['description']),
+        start: startTs != null
+            ? DateTime.fromMillisecondsSinceEpoch(startTs * 1000)
+            : DateTime.tryParse(entry['start']?.toString() ?? '') ?? DateTime.now(),
+        end: stopTs != null
+            ? DateTime.fromMillisecondsSinceEpoch(stopTs * 1000)
+            : DateTime.tryParse(entry['end']?.toString() ?? '') ?? DateTime.now(),
+      );
+    }).toList();
+  }
+
+  String? _decodeMaybeBase64(dynamic value) {
+    if (value == null) return null;
+    final text = value.toString();
+    if (text.isEmpty) return null;
+    try {
+      return utf8.decode(base64.decode(text));
+    } catch (_) {
+      // Manche Server liefern Klartext statt Base64 - dann einfach uebernehmen.
+      return text;
+    }
   }
 }

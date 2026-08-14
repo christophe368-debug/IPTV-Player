@@ -1,7 +1,9 @@
 import 'dart:io';
 import '../models/category.dart';
 import '../models/channel.dart';
+import '../models/epg_program.dart';
 import '../services/m3u_parser_service.dart';
+import '../services/xmltv_service.dart';
 import '../services/xtream_service.dart';
 
 /// Einheitliche Schnittstelle, um Kategorien/Sender/Filme/Serien zu laden -
@@ -11,6 +13,10 @@ import '../services/xtream_service.dart';
 abstract class ContentRepository {
   Future<List<Category>> getCategories(StreamType type);
   Future<List<Channel>> getChannels(StreamType type, {String? categoryId});
+
+  /// Programmfuehrer-Eintraege fuer einen Sender. Liefert eine leere Liste,
+  /// wenn fuer diese Quelle kein EPG verfuegbar ist.
+  Future<List<EpgProgram>> getEpg(Channel channel);
 }
 
 class XtreamContentRepository implements ContentRepository {
@@ -23,6 +29,9 @@ class XtreamContentRepository implements ContentRepository {
   @override
   Future<List<Channel>> getChannels(StreamType type, {String? categoryId}) =>
       service.getStreams(type, categoryId: categoryId);
+
+  @override
+  Future<List<EpgProgram>> getEpg(Channel channel) => service.getEpgPrograms(channel.id);
 }
 
 /// Fuer M3U-Quellen (URL oder lokale Datei). M3U-Playlists liefern keine
@@ -32,6 +41,7 @@ class XtreamContentRepository implements ContentRepository {
 class M3uContentRepository implements ContentRepository {
   final String source;
   final bool isLocalFile;
+  final XmltvService _xmltvService = XmltvService();
   M3uParseResult? _cache;
 
   M3uContentRepository({required this.source, required this.isLocalFile});
@@ -58,5 +68,13 @@ class M3uContentRepository implements ContentRepository {
     final channels = (await _load()).channels;
     if (categoryId == null) return channels;
     return channels.where((c) => c.categoryId == categoryId).toList();
+  }
+
+  @override
+  Future<List<EpgProgram>> getEpg(Channel channel) async {
+    final epgUrl = (await _load()).epgUrl;
+    final tvgId = channel.epgChannelId;
+    if (epgUrl == null || tvgId == null || tvgId.isEmpty) return [];
+    return _xmltvService.getPrograms(epgUrl, tvgId);
   }
 }
