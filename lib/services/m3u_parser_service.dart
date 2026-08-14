@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/category.dart';
 import '../models/channel.dart';
@@ -24,7 +25,10 @@ class M3uParserService {
     if (res.statusCode != 200) {
       throw Exception('Playlist konnte nicht geladen werden (Status ${res.statusCode})');
     }
-    return parseContent(res.body);
+    // res.body wuerde ohne explizites Content-Type-Charset in Latin-1
+    // dekodieren und Umlaute zerstoeren (z.B. "Allgaeu" -> "AllgÃ¤u").
+    // IPTV-Playlists sind praktisch immer UTF-8, egal was der Header sagt.
+    return parseContent(utf8.decode(res.bodyBytes, allowMalformed: true));
   }
 
   /// Parst den Inhalt einer bereits geladenen/eingelesenen M3U-Datei.

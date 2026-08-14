@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -325,7 +326,9 @@ class _M3uFileFormState extends ConsumerState<_M3uFileForm> with _SubmitStateMix
       return;
     }
     await runSubmit(() async {
-      final content = String.fromCharCodes(_pickedBytes!);
+      // String.fromCharCodes wuerde jedes Byte einzeln als Zeichen lesen
+      // (Latin-1) und UTF-8-Mehrbyte-Zeichen wie Umlaute zerstoeren.
+      final content = utf8.decode(_pickedBytes!, allowMalformed: true);
       final result = M3uParserService().parseContent(content);
       if (result.channels.isEmpty) {
         throw Exception('Datei enthaelt keine abspielbaren Eintraege');

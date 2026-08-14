@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Hintergrundfarbe fuer das Android-TV-Launcher-Banner. -->
+    <color name="tv_banner_background">#4527A0</color>
+</resources>
