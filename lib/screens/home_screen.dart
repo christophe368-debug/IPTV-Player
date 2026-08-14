@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/profile.dart';
 import '../providers/profile_provider.dart';
+import 'favorites/favorites_screen.dart';
 import 'live_tv/live_tv_screen.dart';
+import 'search/search_screen.dart';
 import 'series/series_screen.dart';
 import 'vod/vod_screen.dart';
 
@@ -32,8 +34,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       LiveTvScreen(profile: profile),
       isXtream ? VodScreen(profile: profile) : const _NotAvailableForM3u(feature: 'Filme'),
       isXtream ? SeriesScreen(profile: profile) : const _NotAvailableForM3u(feature: 'Serien'),
-      const _ComingSoon(label: 'Favoriten'),
-      const _ComingSoon(label: 'Suche'),
+      FavoritesScreen(profile: profile),
+      SearchScreen(profile: profile),
     ];
 
     const titles = ['Live TV', 'Filme', 'Serien', 'Favoriten', 'Suche'];
@@ -62,25 +64,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           NavigationDestination(icon: Icon(Icons.tv_outlined), label: 'Serien'),
           NavigationDestination(icon: Icon(Icons.favorite_border), label: 'Favoriten'),
           NavigationDestination(icon: Icon(Icons.search), label: 'Suche'),
-        ],
-      ),
-    );
-  }
-}
-
-class _ComingSoon extends StatelessWidget {
-  final String label;
-  const _ComingSoon({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.construction, size: 48, color: Colors.grey),
-          const SizedBox(height: 12),
-          Text('$label folgt in einem der naechsten Schritte'),
         ],
       ),
     );

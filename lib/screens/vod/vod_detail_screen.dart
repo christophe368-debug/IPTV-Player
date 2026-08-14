@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/channel.dart';
 import '../../models/profile.dart';
 import '../../providers/content_provider.dart';
+import '../../widgets/favorite_button.dart';
 import '../live_tv/player_screen.dart';
 
 class VodDetailScreen extends ConsumerWidget {
@@ -16,7 +17,10 @@ class VodDetailScreen extends ConsumerWidget {
     final detailsAsync = ref.watch(vodDetailsProvider((profile: profile, vodId: movie.id)));
 
     return Scaffold(
-      appBar: AppBar(title: Text(movie.name)),
+      appBar: AppBar(
+        title: Text(movie.name),
+        actions: [FavoriteButton(profileId: profile.id, channel: movie)],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

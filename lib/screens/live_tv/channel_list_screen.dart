@@ -5,6 +5,7 @@ import '../../models/category.dart';
 import '../../models/channel.dart';
 import '../../models/profile.dart';
 import '../../providers/content_provider.dart';
+import '../../widgets/favorite_button.dart';
 import 'epg_screen.dart';
 import 'player_screen.dart';
 
@@ -38,14 +39,20 @@ class ChannelListScreen extends ConsumerWidget {
               return ListTile(
                 leading: _ChannelLogo(channel: channel),
                 title: Text(channel.name),
-                trailing: IconButton(
-                  icon: const Icon(Icons.schedule),
-                  tooltip: 'Programm anzeigen',
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => EpgScreen(profile: profile, channel: channel),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FavoriteButton(profileId: profile.id, channel: channel),
+                    IconButton(
+                      icon: const Icon(Icons.schedule),
+                      tooltip: 'Programm anzeigen',
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => EpgScreen(profile: profile, channel: channel),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(

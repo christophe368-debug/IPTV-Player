@@ -5,6 +5,7 @@ import '../../models/channel.dart';
 import '../../models/episode.dart';
 import '../../models/profile.dart';
 import '../../providers/content_provider.dart';
+import '../../widgets/favorite_button.dart';
 import '../live_tv/player_screen.dart';
 
 class SeriesDetailScreen extends ConsumerStatefulWidget {
@@ -26,7 +27,10 @@ class _SeriesDetailScreenState extends ConsumerState<SeriesDetailScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.show.name)),
+      appBar: AppBar(
+        title: Text(widget.show.name),
+        actions: [FavoriteButton(profileId: widget.profile.id, channel: widget.show)],
+      ),
       body: detailsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(

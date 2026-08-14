@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import '../models/channel.dart';
 import '../models/profile.dart';
 
 /// Kuemmert sich um die lokale Speicherung (Hive-Datenbank) auf dem Geraet:
@@ -45,21 +46,28 @@ class StorageService {
     await _settingsBox.put('activeProfileId', id);
   }
 
-  // --- Favoriten: Set von Channel-IDs pro Profil ---
+  // --- Favoriten: vollstaendige Channel-Objekte pro Profil ---
+  // (nicht nur IDs, damit die Favoriten-Liste ohne erneutes Nachladen vom
+  // Server angezeigt werden kann)
 
-  List<String> getFavoriteIds(String profileId) {
-    final raw = _favoritesBox.get(profileId);
+  List<Channel> getFavorites(String profileId) {
+    final raw = _favoritesBox.get(profileId) as List<dynamic>?;
     if (raw == null) return [];
-    return List<String>.from(raw as List);
+    return raw.map((e) => Channel.fromMap(Map<dynamic, dynamic>.from(e as Map))).toList();
   }
 
-  Future<void> toggleFavorite(String profileId, String channelId) async {
-    final current = getFavoriteIds(profileId);
-    if (current.contains(channelId)) {
-      current.remove(channelId);
+  bool isFavorite(String profileId, Channel channel) {
+    return getFavorites(profileId).any((c) => c.favoriteKey == channel.favoriteKey);
+  }
+
+  Future<void> toggleFavorite(String profileId, Channel channel) async {
+    final current = getFavorites(profileId);
+    final exists = current.any((c) => c.favoriteKey == channel.favoriteKey);
+    if (exists) {
+      current.removeWhere((c) => c.favoriteKey == channel.favoriteKey);
     } else {
-      current.add(channelId);
+      current.add(channel);
     }
-    await _favoritesBox.put(profileId, current);
+    await _favoritesBox.put(profileId, current.map((c) => c.toMap()).toList());
   }
 }
