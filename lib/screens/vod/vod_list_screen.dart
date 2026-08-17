@@ -4,6 +4,7 @@ import '../../models/category.dart';
 import '../../models/channel.dart';
 import '../../models/profile.dart';
 import '../../providers/content_provider.dart';
+import '../../widgets/channel_actions_menu.dart';
 import '../../widgets/poster_grid.dart';
 import 'vod_detail_screen.dart';
 
@@ -28,9 +29,13 @@ class VodListScreen extends ConsumerWidget {
           }
           return PosterGrid(
             items: movies,
-            onTap: (movie) => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => VodDetailScreen(profile: profile, movie: movie)),
-            ),
+            onTap: (movie) async {
+              final allowed = await requestChannelUnlockIfNeeded(context, ref, profile.id, movie);
+              if (!allowed || !context.mounted) return;
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => VodDetailScreen(profile: profile, movie: movie)),
+              );
+            },
           );
         },
       ),

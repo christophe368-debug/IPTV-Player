@@ -4,6 +4,7 @@ import '../../models/category.dart';
 import '../../models/channel.dart';
 import '../../models/profile.dart';
 import '../../providers/content_provider.dart';
+import '../../widgets/channel_actions_menu.dart';
 import '../../widgets/poster_grid.dart';
 import 'series_detail_screen.dart';
 
@@ -28,9 +29,13 @@ class SeriesListScreen extends ConsumerWidget {
           }
           return PosterGrid(
             items: series,
-            onTap: (show) => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => SeriesDetailScreen(profile: profile, show: show)),
-            ),
+            onTap: (show) async {
+              final allowed = await requestChannelUnlockIfNeeded(context, ref, profile.id, show);
+              if (!allowed || !context.mounted) return;
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => SeriesDetailScreen(profile: profile, show: show)),
+              );
+            },
           );
         },
       ),

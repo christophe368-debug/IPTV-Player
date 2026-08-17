@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/channel.dart';
 import '../../models/profile.dart';
 import '../../providers/content_provider.dart';
+import '../../providers/settings_provider.dart';
+import '../../widgets/channel_actions_menu.dart';
 import '../live_tv/player_screen.dart';
 import '../series/series_detail_screen.dart';
 
@@ -84,12 +86,16 @@ class _SearchResults extends ConsumerWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
+    final hiddenKeys = ref.watch(hiddenChannelsProvider(profile.id));
     final lowerQuery = query.toLowerCase();
     final results = <Channel>[
       ...liveAsync.valueOrNull ?? [],
       ...vodAsync.valueOrNull ?? [],
       ...seriesAsync.valueOrNull ?? [],
-    ].where((c) => c.name.toLowerCase().contains(lowerQuery)).toList();
+    ]
+        .where((c) => c.name.toLowerCase().contains(lowerQuery))
+        .where((c) => !hiddenKeys.contains(c.favoriteKey))
+        .toList();
 
     if (results.isEmpty) {
       return const Center(child: Text('Keine Treffer.'));
@@ -103,7 +109,10 @@ class _SearchResults extends ConsumerWidget {
           leading: Icon(_iconFor(channel.streamType)),
           title: Text(channel.name),
           subtitle: Text(_typeLabel(channel.streamType)),
-          onTap: () {
+          trailing: ChannelActionsMenu(profileId: profile.id, channel: channel),
+          onTap: () async {
+            final allowed = await requestChannelUnlockIfNeeded(context, ref, profile.id, channel);
+            if (!allowed || !context.mounted) return;
             if (channel.streamType == StreamType.series) {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => SeriesDetailScreen(profile: profile, show: channel)),

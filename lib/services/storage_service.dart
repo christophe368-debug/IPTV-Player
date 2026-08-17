@@ -129,4 +129,72 @@ class StorageService {
     }
     await _settingsBox.put('lockedCategories_$profileId', current.toList());
   }
+
+  // --- Ausgeblendete Kategorien pro Profil ---
+  // (unabhaengig von der Kindersicherung - einfach "brauche ich nicht",
+  // keine PIN noetig)
+
+  Set<String> getHiddenCategoryKeys(String profileId) {
+    final raw = _settingsBox.get('hiddenCategories_$profileId') as List<dynamic>?;
+    if (raw == null) return {};
+    return raw.map((e) => e.toString()).toSet();
+  }
+
+  Future<void> toggleCategoryHidden(String profileId, String categoryKey) async {
+    final current = getHiddenCategoryKeys(profileId);
+    if (current.contains(categoryKey)) {
+      current.remove(categoryKey);
+    } else {
+      current.add(categoryKey);
+    }
+    await _settingsBox.put('hiddenCategories_$profileId', current.toList());
+  }
+
+  // --- Umbenannte Kategorien pro Profil ---
+
+  Map<String, String> getCategoryNameOverrides(String profileId) {
+    final raw = _settingsBox.get('categoryNames_$profileId') as Map<dynamic, dynamic>?;
+    if (raw == null) return {};
+    return raw.map((key, value) => MapEntry(key.toString(), value.toString()));
+  }
+
+  Future<void> setCategoryNameOverride(String profileId, String categoryKey, String? name) async {
+    final current = getCategoryNameOverrides(profileId);
+    if (name == null || name.trim().isEmpty) {
+      current.remove(categoryKey);
+    } else {
+      current[categoryKey] = name.trim();
+    }
+    await _settingsBox.put('categoryNames_$profileId', current);
+  }
+
+  // --- Ausgeblendete/gesperrte einzelne Sender/Filme/Serien pro Profil ---
+  // (nutzt Channel.favoriteKey, also z.B. "live_123" - eindeutig auch
+  // ueber verschiedene Inhaltstypen hinweg)
+
+  Set<String> getHiddenChannelKeys(String profileId) => _getKeySet('hiddenChannels_$profileId');
+
+  Future<void> toggleChannelHidden(String profileId, String channelKey) =>
+      _toggleKeySet('hiddenChannels_$profileId', channelKey);
+
+  Set<String> getLockedChannelKeys(String profileId) => _getKeySet('lockedChannels_$profileId');
+
+  Future<void> toggleChannelLock(String profileId, String channelKey) =>
+      _toggleKeySet('lockedChannels_$profileId', channelKey);
+
+  Set<String> _getKeySet(String storageKey) {
+    final raw = _settingsBox.get(storageKey) as List<dynamic>?;
+    if (raw == null) return {};
+    return raw.map((e) => e.toString()).toSet();
+  }
+
+  Future<void> _toggleKeySet(String storageKey, String key) async {
+    final current = _getKeySet(storageKey);
+    if (current.contains(key)) {
+      current.remove(key);
+    } else {
+      current.add(key);
+    }
+    await _settingsBox.put(storageKey, current.toList());
+  }
 }

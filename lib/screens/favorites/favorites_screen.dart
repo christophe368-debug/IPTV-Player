@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/channel.dart';
 import '../../models/profile.dart';
 import '../../providers/favorites_provider.dart';
+import '../../widgets/channel_actions_menu.dart';
 import '../../widgets/favorite_button.dart';
 import '../live_tv/player_screen.dart';
 import '../series/series_detail_screen.dart';
@@ -42,8 +43,16 @@ class FavoritesScreen extends ConsumerWidget {
           leading: _Logo(channel: channel),
           title: Text(channel.name),
           subtitle: Text(_typeLabel(channel.streamType)),
-          trailing: FavoriteButton(profileId: profile.id, channel: channel),
-          onTap: () {
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FavoriteButton(profileId: profile.id, channel: channel),
+              ChannelActionsMenu(profileId: profile.id, channel: channel),
+            ],
+          ),
+          onTap: () async {
+            final allowed = await requestChannelUnlockIfNeeded(context, ref, profile.id, channel);
+            if (!allowed || !context.mounted) return;
             if (channel.streamType == StreamType.series) {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => SeriesDetailScreen(profile: profile, show: channel)),

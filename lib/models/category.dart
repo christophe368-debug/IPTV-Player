@@ -11,4 +11,8 @@ class Category {
     required this.name,
     required this.streamType,
   });
+
+  Category copyWith({String? name}) {
+    return Category(id: id, name: name ?? this.name, streamType: streamType);
+  }
 }
