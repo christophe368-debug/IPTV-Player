@@ -6,6 +6,7 @@ import '../models/epg_program.dart';
 import '../models/media_details.dart';
 import '../models/profile.dart';
 import '../repositories/content_repository.dart';
+import '../services/xmltv_service.dart';
 import '../services/xtream_service.dart';
 
 /// Fuer Xtream-spezifische Detailinfos (VOD-Beschreibung, Serien-Episoden),
@@ -68,4 +69,25 @@ typedef EpgQuery = ({Profile profile, Channel channel});
 
 final epgProvider = FutureProvider.family<List<EpgProgram>, EpgQuery>((ref, query) {
   return ref.watch(contentRepositoryProvider(query.profile)).getEpg(query.channel);
+});
+
+/// EPG-Programme fuer *mehrere* Sender auf einmal (Raster-/TV-Guide-Ansicht).
+/// Laedt die XMLTV-Quelle nur einmal (XmltvService cached intern pro URL)
+/// und liest danach pro Sender nur noch aus der bereits geparsten Map.
+typedef GridEpgQuery = ({Profile profile, List<Channel> channels});
+
+final gridEpgProvider =
+    FutureProvider.family<Map<String, List<EpgProgram>>, GridEpgQuery>((ref, query) async {
+  final repo = ref.watch(contentRepositoryProvider(query.profile));
+  final url = await repo.getEpgSourceUrl();
+  if (url == null) return {};
+
+  final xmltvService = XmltvService();
+  final result = <String, List<EpgProgram>>{};
+  for (final channel in query.channels) {
+    final tvgId = channel.epgChannelId;
+    if (tvgId == null || tvgId.isEmpty) continue;
+    result[channel.favoriteKey] = await xmltvService.getPrograms(url, tvgId);
+  }
+  return result;
 });

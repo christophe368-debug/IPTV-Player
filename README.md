@@ -9,9 +9,11 @@ grundsaetzlich auch auf Android TV).
 - **Login/Profile:** Xtream Codes API, M3U-Playlist (URL), lokale M3U-Datei.
   Mehrere Profile gleichzeitig moeglich, jederzeit wechselbar.
 - **Live-TV:** Kategorien, Senderliste mit Logos, Vollbild-Player.
-- **EPG:** Programmfuehrer pro Sender ("Jetzt" + kommende Sendungen). Bei
-  Xtream ueber `get_short_epg`, bei M3U ueber die im Playlist-Header
-  referenzierte XMLTV-Datei (`url-tvg`), falls vorhanden.
+- **EPG:** Programmfuehrer pro Sender ("Jetzt" + kommende Sendungen) und ein
+  TV-Guide-Raster (Sender untereinander, Zeitleiste quer) fuer eine ganze
+  Kategorie auf einmal. Bei Xtream ueber `get_short_epg`/`xmltv.php`, bei
+  M3U ueber die im Playlist-Header referenzierte XMLTV-Datei (`url-tvg`),
+  falls vorhanden.
 - **Timeshift/Catchup:** Vergangene Sendungen erneut abspielen, wenn der
   Sender das unterstuetzt (`tv_archive` bei Xtream).
 - **VOD & Serien:** Nur bei Xtream-Profilen (M3U-Playlists liefern keine
@@ -20,9 +22,18 @@ grundsaetzlich auch auf Android TV).
 - **Favoriten:** Sender, Filme und Serien favorisieren, geraeteweise
   gespeichert.
 - **Suche:** Uebergreifend ueber Live-TV (+ VOD/Serien bei Xtream).
-- **Kindersicherung:** Eltern-PIN (gehasht gespeichert), einzelne
-  Kategorien lassen sich damit sperren.
-- **Darstellung:** System-/Hell-/Dunkelmodus, in den Einstellungen wechselbar.
+- **Kindersicherung:** Eltern-PIN (gehasht gespeichert). Ganze Kategorien
+  oder einzelne Sender/Filme/Serien lassen sich sperren - die PIN wird
+  ueberall abgefragt, egal ob man ueber Kategorie, Favoriten oder Suche
+  dorthin gelangt.
+- **Ausblenden & Umbenennen:** Kategorien und einzelne Inhalte lassen sich
+  ausblenden (ohne PIN, reine Uebersicht) und Kategorien umbenennen.
+- **Darstellung:** System-/Hell-/Dunkelmodus. Eigenes Design (kein
+  generisches Material-Lila): dunkler blaustichiger Hintergrund, warmer
+  Signalrot-Akzent, Space Grotesk/Inter-Typografie, ein durchgaengiges
+  "Live-Puls"-Symbol fuer alles, was gerade laeuft.
+- **Start-Bildschirm:** Hero-Bereich (Favorit) + horizontal scrollbare
+  Reihen (Favoriten, Kategorien) statt direkt in einer Liste zu landen.
 - **Picture-in-Picture:** Auf Android ueber den PiP-Button im Player.
 
 **Bewusst zurueckgestellt:** Chromecast (braucht natives Google-Cast-SDK-Setup

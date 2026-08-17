@@ -7,6 +7,7 @@ import 'providers/settings_provider.dart';
 import 'screens/auth/profile_list_screen.dart';
 import 'services/platform_service.dart';
 import 'services/storage_service.dart';
+import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,19 +45,12 @@ class IptvPlayerApp extends ConsumerWidget {
     final visualDensity = isTv ? VisualDensity.comfortable : VisualDensity.standard;
     final textScaler = isTv ? const TextScaler.linear(1.15) : TextScaler.noScaling;
 
-    ThemeData buildTheme(Brightness brightness) => ThemeData(
-          brightness: brightness,
-          useMaterial3: true,
-          colorSchemeSeed: Colors.deepPurple,
-          visualDensity: visualDensity,
-        );
-
     return MaterialApp(
       title: 'IPTV Player',
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
-      darkTheme: buildTheme(Brightness.dark),
-      theme: buildTheme(Brightness.light),
+      darkTheme: AppTheme.dark().copyWith(visualDensity: visualDensity),
+      theme: AppTheme.light().copyWith(visualDensity: visualDensity),
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: textScaler),

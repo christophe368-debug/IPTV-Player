@@ -7,10 +7,19 @@ das hier ist nur der Arbeitsstand/TODO-Teil, der sich schneller aendert.
 ## Stand
 
 Alle Kernfunktionen sind fertig und auf Android getestet (Emulator):
-Login (Xtream/M3U-URL/lokale Datei), Live-TV mit EPG/Timeshift, VOD/Serien
-(Xtream), Favoriten, Suche, Eltern-PIN, Themes, Picture-in-Picture,
-Android TV (Erkennung + Seiten-Navigation + Fokus-Hervorhebung fuer
-D-Pad). 8 Tests gruen, `flutter analyze` sauber.
+Login (Xtream/M3U-URL/lokale Datei), Live-TV mit EPG/Timeshift/TV-Guide-
+Raster, VOD/Serien (Xtream), Favoriten, Suche, Eltern-PIN (Kategorie- und
+Inhalts-Ebene), Ausblenden/Umbenennen, eigenes Farb-/Typo-Design, neuer
+Start-Bildschirm, Android TV (Erkennung + Seiten-Navigation + Fokus-
+Hervorhebung fuer D-Pad). 8 Tests gruen, `flutter analyze` sauber.
+
+**Design-System (seit dem SwipTV-Feature-Abgleich):** `lib/theme/app_theme.dart`
+definiert Farben/Typografie zentral - dunkler blaustichiger Hintergrund,
+Signalrot-Akzent (`AppColors.primary`), Bernstein-Zweitakzent
+(`AppColors.secondary`), Space Grotesk (Ueberschriften) + Inter (Fliesstext)
+via `google_fonts`. `LivePulse`/`LiveBadge` (`lib/widgets/live_pulse.dart`)
+ist das durchgaengige Signatur-Element fuer "laeuft gerade". Beim Anlegen
+neuer Screens diese Tokens verwenden statt eigener Farben/Schriften.
 
 ## Offen
 

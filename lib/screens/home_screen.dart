@@ -8,11 +8,13 @@ import 'live_tv/live_tv_screen.dart';
 import 'search/search_screen.dart';
 import 'series/series_screen.dart';
 import 'settings/settings_screen.dart';
+import 'start/start_screen.dart';
 import 'vod/vod_screen.dart';
 
-/// Hauptbildschirm nach dem Login: Bottom-Navigation zwischen Live-TV, VOD,
-/// Serien, Favoriten und Suche. VOD/Serien stehen nur bei Xtream-Profilen
-/// zur Verfuegung, da M3U-Playlists keine getrennte Struktur dafuer liefern.
+/// Hauptbildschirm nach dem Login: Bottom-Navigation zwischen Start, Live-TV,
+/// VOD, Serien, Favoriten und Suche. VOD/Serien stehen nur bei Xtream-
+/// Profilen zur Verfuegung, da M3U-Playlists keine getrennte Struktur dafuer
+/// liefern.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -34,6 +36,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isTv = ref.watch(isAndroidTvProvider);
 
     final tabs = [
+      StartScreen(profile: profile),
       LiveTvScreen(profile: profile),
       isXtream ? VodScreen(profile: profile) : const _NotAvailableForM3u(feature: 'Filme'),
       isXtream ? SeriesScreen(profile: profile) : const _NotAvailableForM3u(feature: 'Serien'),
@@ -41,8 +44,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       SearchScreen(profile: profile),
     ];
 
-    const titles = ['Live TV', 'Filme', 'Serien', 'Favoriten', 'Suche'];
+    const titles = ['Start', 'Live TV', 'Filme', 'Serien', 'Favoriten', 'Suche'];
     const icons = [
+      Icons.home_outlined,
       Icons.live_tv,
       Icons.movie_outlined,
       Icons.tv_outlined,

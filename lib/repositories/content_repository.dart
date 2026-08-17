@@ -17,6 +17,11 @@ abstract class ContentRepository {
   /// Programmfuehrer-Eintraege fuer einen Sender. Liefert eine leere Liste,
   /// wenn fuer diese Quelle kein EPG verfuegbar ist.
   Future<List<EpgProgram>> getEpg(Channel channel);
+
+  /// URL einer XMLTV-Datei mit dem EPG *aller* Sender auf einmal (fuer die
+  /// Raster-Ansicht/TV-Guide effizienter als getEpg() pro Sender einzeln
+  /// aufzurufen). Null, wenn nicht verfuegbar.
+  Future<String?> getEpgSourceUrl();
 }
 
 class XtreamContentRepository implements ContentRepository {
@@ -32,6 +37,9 @@ class XtreamContentRepository implements ContentRepository {
 
   @override
   Future<List<EpgProgram>> getEpg(Channel channel) => service.getEpgPrograms(channel.id);
+
+  @override
+  Future<String?> getEpgSourceUrl() async => service.buildXmltvUrl();
 }
 
 /// Fuer M3U-Quellen (URL oder lokale Datei). M3U-Playlists liefern keine
@@ -77,4 +85,7 @@ class M3uContentRepository implements ContentRepository {
     if (epgUrl == null || tvgId == null || tvgId.isEmpty) return [];
     return _xmltvService.getPrograms(epgUrl, tvgId);
   }
+
+  @override
+  Future<String?> getEpgSourceUrl() async => (await _load()).epgUrl;
 }

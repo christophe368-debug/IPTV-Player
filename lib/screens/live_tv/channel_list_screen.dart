@@ -9,6 +9,7 @@ import '../../providers/settings_provider.dart';
 import '../../widgets/channel_actions_menu.dart';
 import '../../widgets/favorite_button.dart';
 import '../../widgets/tv_focus_highlight.dart';
+import 'epg_grid_screen.dart';
 import 'epg_screen.dart';
 import 'player_screen.dart';
 
@@ -33,7 +34,25 @@ class _ChannelListScreenState extends ConsumerState<ChannelListScreen> {
     final hiddenKeys = ref.watch(hiddenChannelsProvider(widget.profile.id));
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.category.name)),
+      appBar: AppBar(
+        title: Text(widget.category.name),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.grid_view_outlined),
+            tooltip: 'TV-Guide (Raster)',
+            onPressed: channelsAsync.valueOrNull == null
+                ? null
+                : () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => EpgGridScreen(
+                          profile: widget.profile,
+                          channels: channelsAsync.valueOrNull!,
+                        ),
+                      ),
+                    ),
+          ),
+        ],
+      ),
       body: channelsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(
@@ -58,50 +77,71 @@ class _ChannelListScreenState extends ConsumerState<ChannelListScreen> {
                   onChanged: (value) => setState(() => _showHidden = value),
                 ),
               Expanded(
-                child: ListView.builder(
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(12),
                   itemCount: channels.length,
+                  separatorBuilder: (context, i) => const SizedBox(height: 8),
                   itemBuilder: (context, i) {
                     final channel = channels[i];
                     final isHidden = hiddenKeys.contains(channel.favoriteKey);
                     return TvFocusHighlight(
-                      child: ListTile(
-                        autofocus: i == 0,
-                        leading: _ChannelLogo(channel: channel),
-                        title: Text(
-                          channel.name,
-                          style: TextStyle(color: isHidden ? Colors.grey : null),
-                        ),
-                        subtitle: isHidden ? const Text('Ausgeblendet') : null,
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            FavoriteButton(profileId: widget.profile.id, channel: channel),
-                            IconButton(
-                              icon: const Icon(Icons.schedule),
-                              tooltip: 'Programm anzeigen',
-                              onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => EpgScreen(profile: widget.profile, channel: channel),
-                                ),
+                      child: Card(
+                        child: InkWell(
+                          autofocus: i == 0,
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () async {
+                            final allowed = await requestChannelUnlockIfNeeded(
+                              context,
+                              ref,
+                              widget.profile.id,
+                              channel,
+                            );
+                            if (!allowed || !context.mounted) return;
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    PlayerScreen(title: channel.name, streamUrl: channel.streamUrl),
                               ),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Row(
+                              children: [
+                                _ChannelLogo(channel: channel),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        channel.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              color: isHidden ? Colors.grey : null,
+                                            ),
+                                      ),
+                                      if (isHidden)
+                                        Text('Ausgeblendet', style: Theme.of(context).textTheme.bodySmall),
+                                    ],
+                                  ),
+                                ),
+                                FavoriteButton(profileId: widget.profile.id, channel: channel),
+                                IconButton(
+                                  icon: const Icon(Icons.schedule),
+                                  tooltip: 'Programm anzeigen',
+                                  onPressed: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => EpgScreen(profile: widget.profile, channel: channel),
+                                    ),
+                                  ),
+                                ),
+                                ChannelActionsMenu(profileId: widget.profile.id, channel: channel),
+                              ],
                             ),
-                            ChannelActionsMenu(profileId: widget.profile.id, channel: channel),
-                          ],
+                          ),
                         ),
-                        onTap: () async {
-                          final allowed = await requestChannelUnlockIfNeeded(
-                            context,
-                            ref,
-                            widget.profile.id,
-                            channel,
-                          );
-                          if (!allowed || !context.mounted) return;
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => PlayerScreen(title: channel.name, streamUrl: channel.streamUrl),
-                            ),
-                          );
-                        },
                       ),
                     );
                   },
@@ -122,20 +162,23 @@ class _ChannelLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final logo = channel.logoUrl;
-    if (logo == null || logo.isEmpty) {
-      return const CircleAvatar(child: Icon(Icons.tv));
-    }
-    return CircleAvatar(
-      backgroundColor: Colors.transparent,
-      child: ClipOval(
-        child: CachedNetworkImage(
-          imageUrl: logo,
-          width: 40,
-          height: 40,
-          fit: BoxFit.cover,
-          errorWidget: (context, url, error) => const Icon(Icons.tv),
-          placeholder: (context, url) => const Icon(Icons.tv),
-        ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: 56,
+        height: 56,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        child: logo != null && logo.isNotEmpty
+            ? Padding(
+                padding: const EdgeInsets.all(6),
+                child: CachedNetworkImage(
+                  imageUrl: logo,
+                  fit: BoxFit.contain,
+                  errorWidget: (context, url, error) => const Icon(Icons.tv_outlined),
+                  placeholder: (context, url) => const Icon(Icons.tv_outlined),
+                ),
+              )
+            : const Icon(Icons.tv_outlined),
       ),
     );
   }

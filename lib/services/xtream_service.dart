@@ -27,6 +27,12 @@ class XtreamService {
       ? serverUrl.substring(0, serverUrl.length - 1)
       : serverUrl;
 
+  /// Die meisten Xtream-Panels bieten unter xmltv.php den kompletten EPG
+  /// aller Sender als eine XMLTV-Datei an - viel effizienter fuer eine
+  /// Raster-Ansicht (TV-Guide) als get_short_epg einzeln pro Sender
+  /// aufzurufen.
+  String buildXmltvUrl() => '$_base/xmltv.php?username=$username&password=$password';
+
   Uri _apiUri(String action, [Map<String, String>? extra]) {
     return Uri.parse('$_base/player_api.php').replace(queryParameters: {
       'username': username,

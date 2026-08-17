@@ -72,6 +72,9 @@ dependencies:
   # --- Eltern-PIN-Hashing ---
   crypto: ^3.0.6
 
+  # --- Eigenes Typografie-System (Space Grotesk/Inter statt System-Schrift) ---
+  google_fonts: ^6.2.1
+
 
 dev_dependencies:
   flutter_test:

@@ -4,6 +4,7 @@ import '../../models/channel.dart';
 import '../../models/epg_program.dart';
 import '../../models/profile.dart';
 import '../../providers/content_provider.dart';
+import '../../widgets/live_pulse.dart';
 import 'player_screen.dart';
 
 /// Programmfuehrer (EPG) fuer einen einzelnen Sender: zeigt "Jetzt" und
@@ -61,7 +62,10 @@ class EpgScreen extends ConsumerWidget {
                     ? Text(program.description!, maxLines: 2, overflow: TextOverflow.ellipsis)
                     : null,
                 trailing: isNow
-                    ? const Chip(label: Text('Jetzt'))
+                    ? Chip(
+                        avatar: const LivePulse(size: 7),
+                        label: const Text('Jetzt'),
+                      )
                     : canCatchup
                         ? IconButton(
                             icon: const Icon(Icons.play_circle_outline),
