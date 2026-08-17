@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import '../../providers/platform_provider.dart';
 
 const _pipChannel = MethodChannel('iptv_player/pip');
 
@@ -11,16 +13,16 @@ const _pipChannel = MethodChannel('iptv_player/pip');
 /// Timeshift/Catchup-Ausschnitt). Nutzt media_kit (libmpv), da es im
 /// Gegensatz zum einfachen Flutter video_player auch rohe MPEG-TS-Streams
 /// zuverlaessig abspielt, was bei IPTV-Anbietern sehr haeufig vorkommt.
-class PlayerScreen extends StatefulWidget {
+class PlayerScreen extends ConsumerStatefulWidget {
   final String title;
   final String streamUrl;
   const PlayerScreen({super.key, required this.title, required this.streamUrl});
 
   @override
-  State<PlayerScreen> createState() => _PlayerScreenState();
+  ConsumerState<PlayerScreen> createState() => _PlayerScreenState();
 }
 
-class _PlayerScreenState extends State<PlayerScreen> {
+class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   late final Player _player;
   late final VideoController _controller;
   String? _errorMessage;
@@ -70,6 +72,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isTv = ref.watch(isAndroidTvProvider);
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -77,7 +80,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
         foregroundColor: Colors.white,
         title: Text(widget.title),
         actions: [
-          if (Platform.isAndroid)
+          // Picture-in-Picture ergibt auf einem Fernseher keinen Sinn (kein
+          // Fenster-Konzept, keine sinnvolle Fernbedienungs-Geste dafuer).
+          if (Platform.isAndroid && !isTv)
             IconButton(
               icon: const Icon(Icons.picture_in_picture_alt),
               tooltip: 'Bild-in-Bild',

@@ -6,6 +6,7 @@ import '../models/profile.dart';
 import '../providers/content_provider.dart';
 import '../providers/settings_provider.dart';
 import '../screens/settings/settings_screen.dart';
+import 'tv_focus_highlight.dart';
 
 /// Gemeinsame Kategorien-Liste fuer Live-TV/Filme/Serien, inkl.
 /// Kindersicherung: Kategorien lassen sich sperren (Schloss-Symbol) und
@@ -47,29 +48,32 @@ class CategoryListView extends ConsumerWidget {
             final key = _lockKey(category);
             final isLocked = lockedKeys.contains(key);
 
-            return ListTile(
-              leading: Icon(icon),
-              title: Text(category.name),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (hasPin)
-                    IconButton(
-                      icon: Icon(isLocked ? Icons.lock : Icons.lock_open),
-                      tooltip: isLocked ? 'Sperre aufheben' : 'Kategorie sperren',
-                      onPressed: () =>
-                          ref.read(lockedCategoriesProvider(profile.id).notifier).toggle(key),
-                    ),
-                  const Icon(Icons.chevron_right),
-                ],
+            return TvFocusHighlight(
+              child: ListTile(
+                autofocus: i == 0,
+                leading: Icon(icon),
+                title: Text(category.name),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (hasPin)
+                      IconButton(
+                        icon: Icon(isLocked ? Icons.lock : Icons.lock_open),
+                        tooltip: isLocked ? 'Sperre aufheben' : 'Kategorie sperren',
+                        onPressed: () =>
+                            ref.read(lockedCategoriesProvider(profile.id).notifier).toggle(key),
+                      ),
+                    const Icon(Icons.chevron_right),
+                  ],
+                ),
+                onTap: () async {
+                  if (isLocked) {
+                    final allowed = await requestParentalPin(context, ref);
+                    if (!allowed) return;
+                  }
+                  if (context.mounted) onOpen(context, category);
+                },
               ),
-              onTap: () async {
-                if (isLocked) {
-                  final allowed = await requestParentalPin(context, ref);
-                  if (!allowed) return;
-                }
-                if (context.mounted) onOpen(context, category);
-              },
             );
           },
         );

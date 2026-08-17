@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../models/channel.dart';
+import 'tv_focus_highlight.dart';
 
 /// Wiederverwendbares Poster-Grid fuer Filme und Serien.
 class PosterGrid extends StatelessWidget {
@@ -21,34 +22,37 @@ class PosterGrid extends StatelessWidget {
       itemCount: items.length,
       itemBuilder: (context, i) {
         final item = items[i];
-        return InkWell(
-          onTap: () => onTap(item),
-          borderRadius: BorderRadius.circular(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: item.logoUrl != null && item.logoUrl!.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: item.logoUrl!,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          errorWidget: (context, url, error) => const _PosterPlaceholder(),
-                          placeholder: (context, url) => const _PosterPlaceholder(),
-                        )
-                      : const _PosterPlaceholder(),
+        return TvFocusHighlight(
+          child: InkWell(
+            autofocus: i == 0,
+            onTap: () => onTap(item),
+            borderRadius: BorderRadius.circular(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: item.logoUrl != null && item.logoUrl!.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: item.logoUrl!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorWidget: (context, url, error) => const _PosterPlaceholder(),
+                            placeholder: (context, url) => const _PosterPlaceholder(),
+                          )
+                        : const _PosterPlaceholder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                item.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+                const SizedBox(height: 6),
+                Text(
+                  item.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
           ),
         );
       },

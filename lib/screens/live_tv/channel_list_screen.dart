@@ -6,6 +6,7 @@ import '../../models/channel.dart';
 import '../../models/profile.dart';
 import '../../providers/content_provider.dart';
 import '../../widgets/favorite_button.dart';
+import '../../widgets/tv_focus_highlight.dart';
 import 'epg_screen.dart';
 import 'player_screen.dart';
 
@@ -36,27 +37,30 @@ class ChannelListScreen extends ConsumerWidget {
             itemCount: channels.length,
             itemBuilder: (context, i) {
               final channel = channels[i];
-              return ListTile(
-                leading: _ChannelLogo(channel: channel),
-                title: Text(channel.name),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FavoriteButton(profileId: profile.id, channel: channel),
-                    IconButton(
-                      icon: const Icon(Icons.schedule),
-                      tooltip: 'Programm anzeigen',
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => EpgScreen(profile: profile, channel: channel),
+              return TvFocusHighlight(
+                child: ListTile(
+                  autofocus: i == 0,
+                  leading: _ChannelLogo(channel: channel),
+                  title: Text(channel.name),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FavoriteButton(profileId: profile.id, channel: channel),
+                      IconButton(
+                        icon: const Icon(Icons.schedule),
+                        tooltip: 'Programm anzeigen',
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => EpgScreen(profile: profile, channel: channel),
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => PlayerScreen(title: channel.name, streamUrl: channel.streamUrl),
                     ),
-                  ],
-                ),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => PlayerScreen(title: channel.name, streamUrl: channel.streamUrl),
                   ),
                 ),
               );

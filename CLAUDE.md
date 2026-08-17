@@ -9,7 +9,8 @@ das hier ist nur der Arbeitsstand/TODO-Teil, der sich schneller aendert.
 Alle Kernfunktionen sind fertig und auf Android getestet (Emulator):
 Login (Xtream/M3U-URL/lokale Datei), Live-TV mit EPG/Timeshift, VOD/Serien
 (Xtream), Favoriten, Suche, Eltern-PIN, Themes, Picture-in-Picture,
-Android-TV-Manifest-Vorbereitung. 8 Tests gruen, `flutter analyze` sauber.
+Android TV (Erkennung + Seiten-Navigation + Fokus-Hervorhebung fuer
+D-Pad). 8 Tests gruen, `flutter analyze` sauber.
 
 ## Offen
 
@@ -21,11 +22,13 @@ Android-TV-Manifest-Vorbereitung. 8 Tests gruen, `flutter analyze` sauber.
 - **Chromecast:** Bewusst zurueckgestellt - braucht natives Google-Cast-SDK-
   Setup auf beiden Plattformen (CastOptionsProvider etc.), eigener
   Folgeschritt.
-- **Android TV:** Manifest ist vorbereitet (Leanback-Launcher-Eintrag,
-  Banner), aber die UI ist noch touch-/handy-optimiert. Fuer eine wirklich
-  gute TV-Erfahrung fehlt noch ein eigener, groesser dimensionierter
-  10-Fuss-Layout-Pfad mit sichtbaren Fokus-Hervorhebungen fuer D-Pad-
-  Navigation.
+- **Android TV Feinschliff (Task #13, erledigt):** TV-Erkennung
+  (`UiModeManager` -> `isAndroidTvProvider`), `NavigationRail` statt
+  Bottom-Nav, `TvFocusHighlight`-Widget fuer sichtbaren D-Pad-Fokus in
+  Profil-/Kategorie-/Sender-/Poster-Listen, PiP-Button auf TV ausgeblendet.
+  Noch nicht gemacht: ein wirklich eigener 10-Fuss-Layout-Pfad (groessere
+  Grids/Abstaende speziell fuer TV) - bisher nur Skalierung ueber
+  VisualDensity/TextScaler, kein separates Layout.
 - Keine echten IPTV-Zugangsdaten zum Testen vorhanden - bisher nur mit
   einer oeffentlichen Test-Playlist (`https://iptv-org.github.io/iptv/
   countries/de.m3u`, Live-TV-only, kein Xtream) durchgetestet. VOD/Serien-

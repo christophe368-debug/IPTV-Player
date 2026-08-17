@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/profile.dart';
+import '../providers/platform_provider.dart';
 import '../providers/profile_provider.dart';
 import 'favorites/favorites_screen.dart';
 import 'live_tv/live_tv_screen.dart';
@@ -30,6 +31,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     final isXtream = profile.type == ProfileType.xtream;
+    final isTv = ref.watch(isAndroidTvProvider);
 
     final tabs = [
       LiveTvScreen(profile: profile),
@@ -40,38 +42,71 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ];
 
     const titles = ['Live TV', 'Filme', 'Serien', 'Favoriten', 'Suche'];
+    const icons = [
+      Icons.live_tv,
+      Icons.movie_outlined,
+      Icons.tv_outlined,
+      Icons.favorite_border,
+      Icons.search,
+    ];
+
+    final appBar = AppBar(
+      title: Text('${titles[_tabIndex]} - ${profile.name}'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.settings_outlined),
+          tooltip: 'Einstellungen',
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const SettingsScreen()),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.switch_account),
+          tooltip: 'Profil wechseln',
+          onPressed: () {
+            ref.read(activeProfileIdProvider.notifier).state = null;
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+        ),
+      ],
+    );
+
+    // Auf Android TV gibt es keine untere Bildschirmkante, die man mit einer
+    // Fernbedienung bequem erreicht - eine seitliche Navigationsleiste ist
+    // mit dem D-Pad (rauf/runter) viel natuerlicher zu bedienen.
+    if (isTv) {
+      return Scaffold(
+        appBar: appBar,
+        body: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: _tabIndex,
+              onDestinationSelected: (i) => setState(() => _tabIndex = i),
+              labelType: NavigationRailLabelType.all,
+              destinations: [
+                for (var i = 0; i < titles.length; i++)
+                  NavigationRailDestination(
+                    icon: Icon(icons[i]),
+                    label: Text(titles[i]),
+                  ),
+              ],
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(child: IndexedStack(index: _tabIndex, children: tabs)),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${titles[_tabIndex]} - ${profile.name}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Einstellungen',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.switch_account),
-            tooltip: 'Profil wechseln',
-            onPressed: () {
-              ref.read(activeProfileIdProvider.notifier).state = null;
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-          ),
-        ],
-      ),
+      appBar: appBar,
       body: IndexedStack(index: _tabIndex, children: tabs),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tabIndex,
         onDestinationSelected: (i) => setState(() => _tabIndex = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.live_tv), label: 'Live TV'),
-          NavigationDestination(icon: Icon(Icons.movie_outlined), label: 'Filme'),
-          NavigationDestination(icon: Icon(Icons.tv_outlined), label: 'Serien'),
-          NavigationDestination(icon: Icon(Icons.favorite_border), label: 'Favoriten'),
-          NavigationDestination(icon: Icon(Icons.search), label: 'Suche'),
+        destinations: [
+          for (var i = 0; i < titles.length; i++)
+            NavigationDestination(icon: Icon(icons[i]), label: titles[i]),
         ],
       ),
     );

@@ -109,11 +109,26 @@ in `codemagic.yaml`. Dafuer noetig:
 
 ## Android TV
 
-Manifest ist fuer Android TV vorbereitet (Leanback-Launcher-Eintrag,
-Banner, kein Touchscreen vorausgesetzt). Die UI selbst ist aber noch auf
-Touch/Handy optimiert (Bottom-Navigation, kein dediziertes 10-Fuss-Design) -
-Fernbedienungs-Navigation funktioniert ueber Flutters eingebaute
-Fokus-Traversierung (Pfeiltasten/D-Pad), aber ohne die grosszuegigen
-Fokus-Hervorhebungen, die ein richtiges TV-UI braucht. Fuer eine wirklich
-gute TV-Erfahrung waere ein eigener, groesser dimensionierter TV-Layout-Pfad
-ein sinnvoller naechster Schritt.
+- Manifest ist vorbereitet (Leanback-Launcher-Eintrag, Banner, kein
+  Touchscreen vorausgesetzt).
+- Laufzeit-Erkennung, ob die App auf einem TV-Geraet laeuft
+  (`UiModeManager` in `MainActivity.kt`, gespiegelt nach Dart ueber
+  `isAndroidTvProvider`).
+- Auf einem erkannten TV-Geraet:
+  - **Seiten-Navigation** (`NavigationRail`) statt Bottom-Navigation -
+    mit dem D-Pad rauf/runter viel natuerlicher zu bedienen als eine
+    Leiste am unteren Bildschirmrand.
+  - **Sichtbare Fokus-Hervorhebung** (`TvFocusHighlight`-Widget) in
+    Profil-, Kategorie-, Sender- und Poster-Listen, damit man beim
+    Navigieren mit der Fernbedienung aus mehreren Metern Entfernung
+    erkennt, wo man gerade ist. Automatischer Fokus auf dem ersten
+    Listenelement, wenn ein Bildschirm oeffnet.
+  - Etwas groessere Schrift/Icons (`VisualDensity.comfortable` +
+    Text-Skalierung).
+  - Picture-in-Picture-Button im Player ist ausgeblendet (auf TV ohne
+    Fenster-Konzept nicht sinnvoll).
+- **Noch offen:** kein komplett eigener 10-Fuss-Layout-Pfad (z.B.
+  groessere Poster-Grids, andere Abstaende auf Formular-Screens wie
+  Login/Einstellungen). Fuer den Alltag (Sender/Filme/Serien durchsuchen
+  und abspielen) sollte es sich aber schon gut mit einer Fernbedienung
+  bedienen lassen.

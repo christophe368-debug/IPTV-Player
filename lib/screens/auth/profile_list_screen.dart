@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/profile.dart';
 import '../../providers/profile_provider.dart';
+import '../../widgets/tv_focus_highlight.dart';
 import '../home_screen.dart';
 import 'add_profile_screen.dart';
 
@@ -24,15 +25,18 @@ class ProfileListScreen extends ConsumerWidget {
               itemBuilder: (context, i) {
                 final profile = profiles[i];
                 return Card(
-                  child: ListTile(
-                    leading: CircleAvatar(child: Text(profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?')),
-                    title: Text(profile.name),
-                    subtitle: Text(_typeLabel(profile.type)),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => ref.read(profilesProvider.notifier).remove(profile.id),
+                  child: TvFocusHighlight(
+                    child: ListTile(
+                      autofocus: i == 0,
+                      leading: CircleAvatar(child: Text(profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?')),
+                      title: Text(profile.name),
+                      subtitle: Text(_typeLabel(profile.type)),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () => ref.read(profilesProvider.notifier).remove(profile.id),
+                      ),
+                      onTap: () => _selectProfile(context, ref, profile),
                     ),
-                    onTap: () => _selectProfile(context, ref, profile),
                   ),
                 );
               },
